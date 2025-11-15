@@ -92,7 +92,8 @@ export function useVertexCalculation() {
         },
         color: colors[index],
         brightness: brightnesses[index],
-        included: brightnesses[index] >= config.brightnessThreshold,
+        // When avoiding dark areas, all drones should be included since they're placed strategically
+        included: config.avoidDarkAreas ? true : (brightnesses[index] >= config.brightnessThreshold),
       }));
       
       // Final check before setting results

@@ -80,15 +80,27 @@ function distributeWithBrightnessGrid(params: {
   // Generate candidates in each grid cell
   for (let gridY = 0; gridY < gridSize; gridY++) {
     for (let gridX = 0; gridX < gridSize; gridX++) {
-      // Try multiple positions within each cell
-      const attempts = 5;
+      // Try multiple positions within each cell (increased for better brightness targeting)
+      const attempts = 15;
       let bestCandidate: (Vertex & { brightness: number; gridX: number; gridY: number }) | null = null;
       let bestBrightness = -1;
       
       for (let attempt = 0; attempt < attempts; attempt++) {
-        // Random position within the grid cell
-        const localX = Math.random() * cellWidth;
-        const localY = Math.random() * cellHeight;
+        // Use both random and systematic sampling for better coverage
+        let localX, localY;
+        
+        if (attempt < 9) {
+          // First 9 attempts: systematic grid within cell
+          const subGridX = attempt % 3;
+          const subGridY = Math.floor(attempt / 3);
+          localX = (subGridX + 0.5) * (cellWidth / 3);
+          localY = (subGridY + 0.5) * (cellHeight / 3);
+        } else {
+          // Remaining attempts: random positions
+          localX = Math.random() * cellWidth;
+          localY = Math.random() * cellHeight;
+        }
+        
         const x = margin + gridX * cellWidth + localX;
         const y = margin + gridY * cellHeight + localY;
         
@@ -101,8 +113,11 @@ function distributeWithBrightnessGrid(params: {
         const color = sampleColorAtVertex(imageData, x, y, avoidanceRadius);
         const brightness = calculateBrightness(color);
         
-        // Keep the brightest candidate from this cell
-        if (brightness > bestBrightness) {
+        // Keep the brightest candidate from this cell, but prioritize those above threshold
+        const isBetterCandidate = brightness > bestBrightness || 
+          (brightness >= brightnessThreshold && bestBrightness < brightnessThreshold);
+        
+        if (isBetterCandidate) {
           bestBrightness = brightness;
           bestCandidate = {
             id: `v${id++}`,
@@ -115,6 +130,11 @@ function distributeWithBrightnessGrid(params: {
             gridY
           };
         }
+        
+        // If we found a very bright spot, we can stop early
+        if (brightness >= Math.min(0.8, brightnessThreshold + 0.3)) {
+          break;
+        }
       }
       
       if (bestCandidate) {
@@ -123,20 +143,30 @@ function distributeWithBrightnessGrid(params: {
     }
   }
   
-  // Sort candidates by brightness (brightest first)
-  candidates.sort((a, b) => b.brightness - a.brightness);
+  // Sort candidates by a combined score of brightness and quality
+  candidates.sort((a, b) => {
+    // Prioritize candidates that meet brightness threshold
+    const aAboveThreshold = a.brightness >= brightnessThreshold;
+    const bAboveThreshold = b.brightness >= brightnessThreshold;
+    
+    if (aAboveThreshold && !bAboveThreshold) return -1;
+    if (!aAboveThreshold && bAboveThreshold) return 1;
+    
+    // If both meet or don't meet threshold, sort by brightness
+    return b.brightness - a.brightness;
+  });
   
   // Select vertices ensuring good spatial distribution
   const selectedVertices: Vertex[] = [];
   const usedCells = new Set<string>();
   
-  // First pass: select bright vertices with good distribution
+  // First pass: select vertices that meet brightness threshold with good distribution
   for (const candidate of candidates) {
     if (selectedVertices.length >= count) break;
     
     const cellKey = `${candidate.gridX}-${candidate.gridY}`;
     
-    // Only select if meets brightness threshold and cell not used
+    // Prioritize candidates above brightness threshold
     if (candidate.brightness >= brightnessThreshold && !usedCells.has(cellKey)) {
       selectedVertices.push({
         id: candidate.id,

@@ -4,11 +4,6 @@
 
 import { useState } from 'react';
 import { DroneData } from '@/domain/types';
-import { 
-  calculateTooltipDimensions, 
-  calculateTooltipPosition, 
-  createDroneTooltipContent 
-} from './utils/tooltipUtils';
 
 interface DronePreviewProps {
   drone: DroneData;
@@ -16,8 +11,8 @@ interface DronePreviewProps {
   y: number;
   scale: number;
   showDetails?: boolean;
-  canvasWidth?: number;
-  canvasHeight?: number;
+  onHover?: (drone: DroneData, x: number, y: number) => void;
+  onUnhover?: () => void;
 }
 
 export function DronePreview({ 
@@ -26,8 +21,8 @@ export function DronePreview({
   y, 
   scale, 
   showDetails = false,
-  canvasWidth = 800,
-  canvasHeight = 600 
+  onHover,
+  onUnhover
 }: DronePreviewProps) {
   const [isHovered, setIsHovered] = useState(false);
   const radius = Math.max(3, 6 * scale);
@@ -44,44 +39,17 @@ export function DronePreview({
           fill="rgba(128, 128, 128, 0.3)"
           stroke="rgba(128, 128, 128, 0.5)"
           strokeWidth={strokeWidth * 0.5}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={() => {
+            setIsHovered(true);
+            if (showDetails && onHover) onHover(drone, x, y);
+          }}
+          onMouseLeave={() => {
+            setIsHovered(false);
+            if (onUnhover) onUnhover();
+          }}
           style={{ cursor: showDetails ? 'pointer' : 'default' }}
         />
         
-        {/* Excluded drone tooltip */}
-        {isHovered && showDetails && (() => {
-          const tooltipContent = createDroneTooltipContent(drone, true);
-          const dimensions = calculateTooltipDimensions(tooltipContent);
-          const position = calculateTooltipPosition(
-            x, y, radius, dimensions.width, dimensions.height, canvasWidth, canvasHeight
-          );
-          
-          return (
-            <g className="pointer-events-none">
-              <rect
-                x={position.x}
-                y={position.y}
-                width={dimensions.width}
-                height={dimensions.height}
-                fill="rgba(0, 0, 0, 0.9)"
-                rx={4}
-              />
-              {tooltipContent.lines.map((line, index) => (
-                <text
-                  key={index}
-                  x={position.x + dimensions.padding.x}
-                  y={position.y + dimensions.padding.y + (index + 1) * 14}
-                  fill="white"
-                  fontSize="10"
-                  fontFamily="monospace"
-                >
-                  {line}
-                </text>
-              ))}
-            </g>
-          );
-        })()}
       </g>
     );
   }
@@ -104,8 +72,14 @@ export function DronePreview({
         stroke={strokeColor}
         strokeWidth={strokeWidth}
         opacity={0.85 + brightness * 0.15} // Brighter drones are more opaque
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          if (showDetails && onHover) onHover(drone, x, y);
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          if (onUnhover) onUnhover();
+        }}
         style={{ cursor: showDetails ? 'pointer' : 'default' }}
       />
       
@@ -133,39 +107,6 @@ export function DronePreview({
         />
       )}
       
-      {/* Details tooltip on hover (if enabled) */}
-      {isHovered && showDetails && (() => {
-        const tooltipContent = createDroneTooltipContent(drone, false);
-        const dimensions = calculateTooltipDimensions(tooltipContent);
-        const position = calculateTooltipPosition(
-          x, y, radius, dimensions.width, dimensions.height, canvasWidth, canvasHeight
-        );
-        
-        return (
-          <g className="pointer-events-none">
-            <rect
-              x={position.x}
-              y={position.y}
-              width={dimensions.width}
-              height={dimensions.height}
-              fill="rgba(0, 0, 0, 0.9)"
-              rx={4}
-            />
-            {tooltipContent.lines.map((line, index) => (
-              <text
-                key={index}
-                x={position.x + dimensions.padding.x}
-                y={position.y + dimensions.padding.y + (index + 1) * 14}
-                fill="white"
-                fontSize="10"
-                fontFamily="monospace"
-              >
-                {line}
-              </text>
-            ))}
-          </g>
-        );
-      })()}
     </g>
   );
 }
