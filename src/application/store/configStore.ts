@@ -16,12 +16,16 @@ interface ConfigState {
   brightnessThreshold: number;
   samplingRadius: number;
   
+  // Display configuration
+  showImagePreview: boolean;
+  
   // Actions
   setVertexCount: (count: number) => void;
   setVertexDistribution: (distribution: VertexDistribution) => void;
   setVertexMargin: (margin: number) => void;
   setBrightnessThreshold: (threshold: number) => void;
   setSamplingRadius: (radius: number) => void;
+  setShowImagePreview: (show: boolean) => void;
   resetConfig: () => void;
 }
 
@@ -31,6 +35,7 @@ const initialState = {
   vertexMargin: DEFAULT_VERTEX_CONFIG.margin,
   brightnessThreshold: DEFAULT_DRONE_CONFIG.brightnessThreshold,
   samplingRadius: DEFAULT_DRONE_CONFIG.samplingRadius,
+  showImagePreview: true,
 };
 
 export const useConfigStore = create<ConfigState>((set) => ({
@@ -42,6 +47,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   setVertexMargin: (margin) => set({ vertexMargin: margin }),
   setBrightnessThreshold: (threshold) => set({ brightnessThreshold: threshold }),
   setSamplingRadius: (radius) => set({ samplingRadius: radius }),
+  setShowImagePreview: (show) => set({ showImagePreview: show }),
   
   resetConfig: () => set(initialState),
 }));

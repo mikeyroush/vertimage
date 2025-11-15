@@ -4,6 +4,7 @@
 
 import { useRef } from 'react';
 import { useImageStore } from '@/application/store/imageStore';
+import { useConfigStore } from '@/application/store/configStore';
 import { useCanvasDimensions } from '@/application/hooks/useCanvasDimensions';
 import { ImageCanvas } from '../canvas/ImageCanvas';
 import { VertexOverlay } from '../canvas/VertexOverlay';
@@ -11,6 +12,7 @@ import { VertexOverlay } from '../canvas/VertexOverlay';
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
   const currentImage = useImageStore((state) => state.currentImage);
+  const showImagePreview = useConfigStore((state) => state.showImagePreview);
   
   // Use unified canvas dimensions hook
   const canvasDimensions = useCanvasDimensions(containerRef, {
@@ -31,14 +33,32 @@ export function CanvasArea() {
         {currentImage ? (
           <div className="w-full h-full flex items-center justify-center">
             <div className="relative transition-all duration-300 ease-out">
-              <ImageCanvas 
-                width={canvasDimensions.width}
-                height={canvasDimensions.height}
-                scale={canvasDimensions.scale}
-                className={`transition-opacity duration-200 ${
-                  canvasDimensions.isCalculating ? 'opacity-75' : 'opacity-100'
-                }`}
-              />
+              {/* Background pattern when image is hidden */}
+              {!showImagePreview && (
+                <div 
+                  className="border border-border rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm"
+                  style={{
+                    width: canvasDimensions.width,
+                    height: canvasDimensions.height,
+                    backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0)',
+                    backgroundSize: '20px 20px'
+                  }}
+                />
+              )}
+              
+              {/* Image canvas - conditionally rendered */}
+              {showImagePreview && (
+                <ImageCanvas 
+                  width={canvasDimensions.width}
+                  height={canvasDimensions.height}
+                  scale={canvasDimensions.scale}
+                  className={`transition-opacity duration-200 ${
+                    canvasDimensions.isCalculating ? 'opacity-75' : 'opacity-100'
+                  }`}
+                />
+              )}
+              
+              {/* Vertex overlay - always rendered */}
               <VertexOverlay
                 width={canvasDimensions.width}
                 height={canvasDimensions.height}
