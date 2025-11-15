@@ -6,8 +6,8 @@ import { Card } from '@/components/ui/card';
 import { VertexCountSlider } from '../controls/VertexCountSlider';
 import { BrightnessThreshold } from '../controls/BrightnessThreshold';
 import { SamplingRadius } from '../controls/SamplingRadius';
-import { ImagePreviewToggle } from '../controls/ImagePreviewToggle';
 import { AvoidDarkAreasToggle } from '../controls/AvoidDarkAreasToggle';
+import { MaskGridDensity } from '../controls/MaskGridDensity';
 import { ExportButton } from '../controls/ExportButton';
 import { ImageUpload } from '../upload/ImageUpload';
 import { useImageStore } from '@/application/store/imageStore';
@@ -37,13 +37,19 @@ export function Sidebar() {
         {/* Controls Section */}
         {currentImage && (
           <>
+            {/* Drone Configuration */}
             <Card className="p-4 space-y-4">
-              <h2 className="text-sm font-semibold">Configuration</h2>
+              <h2 className="text-sm font-semibold">Drone Configuration</h2>
               <VertexCountSlider />
               <BrightnessThreshold />
               <SamplingRadius />
+            </Card>
+            
+            {/* Placement Algorithm */}
+            <Card className="p-4 space-y-4">
+              <h2 className="text-sm font-semibold">Placement Algorithm</h2>
               <AvoidDarkAreasToggle />
-              <ImagePreviewToggle />
+              <MaskGridDensity />
             </Card>
             
             {/* Statistics */}
