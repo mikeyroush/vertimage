@@ -10,6 +10,7 @@ import { useCanvasDimensions } from '@/application/hooks/useCanvasDimensions';
 import { ImageCanvas } from '../canvas/ImageCanvas';
 import { VertexOverlay } from '../canvas/VertexOverlay';
 import { BrightnessMaskOverlay } from '../canvas/BrightnessMaskOverlay';
+import { ViewControlsPanel } from '../canvas/ViewControlsPanel';
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,9 @@ export function CanvasArea() {
             Recalculating layout...
           </div>
         )}
+        
+        {/* View Controls Panel - positioned relative to canvas container */}
+        <ViewControlsPanel />
         
         {currentImage ? (
           <div className="w-full h-full flex items-center justify-center">

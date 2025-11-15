@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { useDroneStore } from '@/application/store/droneStore';
 import { useImageStore } from '@/application/store/imageStore';
+import { useConfigStore } from '@/application/store/configStore';
 import { DronePreview } from './DronePreview';
 import { DroneData } from '@/domain/types';
 import { 
@@ -20,11 +21,12 @@ interface VertexOverlayProps {
 }
 
 export function VertexOverlay({ width, height, scale }: VertexOverlayProps) {
-  const [showDetails, setShowDetails] = useState(false);
   const [hoveredDrone, setHoveredDrone] = useState<{ drone: DroneData; x: number; y: number } | null>(null);
   const drones = useDroneStore((state) => state.drones);
   const currentImage = useImageStore((state) => state.currentImage);
   const isCalculating = useDroneStore((state) => state.isCalculating);
+  const showVertices = useConfigStore((state) => state.showVertices);
+  const showDetails = useConfigStore((state) => state.showDetails);
   
   if (!currentImage || drones.length === 0) return null;
   
@@ -36,18 +38,6 @@ export function VertexOverlay({ width, height, scale }: VertexOverlayProps) {
   
   return (
     <div className="absolute inset-0">
-      {/* Toggle button for details */}
-      <button
-        onClick={() => setShowDetails(!showDetails)}
-        className={`absolute top-4 right-4 px-3 py-1 text-white text-xs rounded-md z-10 transition-all ${
-          showDetails 
-            ? 'bg-blue-600 hover:bg-blue-700 shadow-lg' 
-            : 'bg-black/50 hover:bg-black/70'
-        }`}
-      >
-        {showDetails ? 'Hide Details' : 'Show Details'}
-      </button>
-      
       {/* Loading indicator */}
       {isCalculating && (
         <div className="absolute top-4 left-4 px-3 py-1 bg-blue-500/80 text-white text-xs rounded-md z-10">
@@ -66,31 +56,33 @@ export function VertexOverlay({ width, height, scale }: VertexOverlayProps) {
         className="absolute inset-0"
         style={{ width, height }}
       >
-        {/* Drone vertices layer */}
-        <g className="vertices-layer">
-          {drones.map((drone) => {
-            // Convert image coordinates to scaled canvas coordinates
-            const x = offsetX + (drone.position.x * scale);
-            const y = offsetY + (drone.position.y * scale);
-            
-            return (
-              <DronePreview
-                key={drone.id}
-                drone={drone}
-                x={x}
-                y={y}
-                scale={scale}
-                showDetails={showDetails}
-                onHover={(drone, x, y) => setHoveredDrone({ drone, x, y })}
-                onUnhover={() => setHoveredDrone(null)}
-              />
-            );
-          })}
-        </g>
+        {/* Drone vertices layer - conditionally rendered */}
+        {showVertices && (
+          <g className="vertices-layer">
+            {drones.map((drone) => {
+              // Convert image coordinates to scaled canvas coordinates
+              const x = offsetX + (drone.position.x * scale);
+              const y = offsetY + (drone.position.y * scale);
+              
+              return (
+                <DronePreview
+                  key={drone.id}
+                  drone={drone}
+                  x={x}
+                  y={y}
+                  scale={scale}
+                  showDetails={showDetails}
+                  onHover={(drone, x, y) => setHoveredDrone({ drone, x, y })}
+                  onUnhover={() => setHoveredDrone(null)}
+                />
+              );
+            })}
+          </g>
+        )}
         
         {/* Tooltips layer - rendered on top with highest z-index */}
         <g className="tooltips-layer">
-          {hoveredDrone && showDetails && (() => {
+          {hoveredDrone && showDetails && showVertices && (() => {
             const { drone, x, y } = hoveredDrone;
             const radius = Math.max(3, 6 * scale);
             const isExcluded = !drone.included;
