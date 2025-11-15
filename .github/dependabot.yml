@@ -1,0 +1,74 @@
+# Dependabot configuration for Vertimage
+# Keeps dependencies up-to-date automatically
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    # Update npm dependencies weekly
+    open-pull-requests-limit: 10
+    # Group dependency updates to reduce PR noise
+    groups:
+      # Group all React-related dependencies
+      react:
+        patterns:
+          - "react"
+          - "react-*"
+          - "@types/react"
+          - "@types/react-*"
+      # Group Radix UI components
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      # Group all development dependencies
+      dev-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "*"
+      # Group TypeScript and type definitions
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+      # Group Vite and build tools
+      build-tools:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "rollup"
+          - "esbuild"
+    # Customize commit messages
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Add labels to PRs
+    labels:
+      - "dependencies"
+      - "automated"
+    # Add reviewers if you have a team
+    # reviewers:
+    #   - "username"
+    # Ignore specific dependencies if needed
+    # ignore:
+    #   - dependency-name: "example-package"
+    #     versions: ["1.x", "2.x"]
+    
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
