@@ -1,0 +1,107 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# The above will handle all files NOT found below
+# These files are text and should be normalized (convert crlf => lf)
+*.css           text
+*.df            text
+*.htm           text
+*.html          text
+*.js            text
+*.json          text
+*.jsx           text
+*.less          text
+*.md            text
+*.php           text
+*.pl            text
+*.py            text
+*.rb            text
+*.sass          text
+*.scss          text
+*.sh            text
+*.sql           text
+*.styl          text
+*.tag           text
+*.ts            text
+*.tsx           text
+*.xml           text
+*.yml           text
+*.yaml          text
+
+# These files are binary and should be left untouched
+# (binary is a macro for -text -diff)
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.mov           binary
+*.mp4           binary
+*.mp3           binary
+*.flv           binary
+*.fla           binary
+*.swf           binary
+*.gz            binary
+*.zip           binary
+*.7z            binary
+*.ttf           binary
+*.eot           binary
+*.woff          binary
+*.woff2         binary
+*.pyc           binary
+*.pdf           binary
+
+# Documents
+*.bibtex        text diff=bibtex
+*.doc           diff=astextplain
+*.DOC           diff=astextplain
+*.docx          diff=astextplain
+*.DOCX          diff=astextplain
+*.dot           diff=astextplain
+*.DOT           diff=astextplain
+*.pdf           diff=astextplain
+*.PDF           diff=astextplain
+*.rtf           diff=astextplain
+*.RTF           diff=astextplain
+
+# RC files (like .babelrc or .eslintrc)
+*.*rc           text
+
+# Git configuration files
+.gitattributes  text
+.gitignore      text
+.gitconfig      text
+
+# GitHub files
+*.md            text diff=markdown
+LICENSE         text
+CHANGELOG       text
+CONTRIBUTORS    text
+COPYING         text
+copyright       text
+*COPYRIGHT*     text
+INSTALL         text
+license         text
+NEWS            text
+readme          text
+*README*        text
+TODO            text
+
+# NPM files
+package.json    text eol=lf
+package-lock.json text eol=lf -diff
+pnpm-lock.yaml  text eol=lf -diff
+yarn.lock       text eol=lf -diff
+
+# Configuration files
+*.cnf           text
+*.conf          text
+*.config        text
+.editorconfig   text
+.env            text
+.env.*          text
+.htaccess       text
+*.toml          text
+
+# Fixes syntax highlighting on GitHub to allow comments
+tsconfig.json   linguist-language=JSON-with-Comments

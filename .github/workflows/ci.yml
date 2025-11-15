@@ -1,0 +1,265 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+env:
+  NODE_VERSION: "20.x"
+  PNPM_VERSION: "8"
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  quality-checks:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run ESLint
+        id: eslint
+        run: |
+          pnpm run lint --format=json --output-file=eslint-report.json || true
+          if [ -f eslint-report.json ]; then
+            echo "eslint_executed=true" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Upload ESLint report
+        if: steps.eslint.outputs.eslint_executed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: eslint-report.json
+          retention-days: 7
+          
+      - name: TypeScript type checking
+        run: pnpm exec tsc --noEmit
+        
+      - name: Check for circular dependencies
+        run: pnpm dlx madge --circular --extensions ts,tsx ./src
+        
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality-checks
+    
+    strategy:
+      matrix:
+        node-version: ["18.x", "20.x", "21.x"]
+        
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build application
+        run: pnpm run build
+        
+      - name: Upload build artifacts
+        if: matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 7
+          
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality-checks
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build for production
+        run: pnpm run build
+        
+      - name: Analyze bundle size
+        uses: github/super-linter/analyze-bundle-size@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          build_directory: dist
+          
+      - name: Check bundle size limits
+        run: |
+          # Define size limits (in KB)
+          MAX_JS_SIZE=500
+          MAX_CSS_SIZE=100
+          
+          # Check JavaScript bundle sizes
+          JS_SIZE=$(find dist -name "*.js" -type f -exec ls -l {} + | awk '{total+=$5} END{print int(total/1024)}')
+          echo "Total JS size: ${JS_SIZE}KB (limit: ${MAX_JS_SIZE}KB)"
+          
+          if [ $JS_SIZE -gt $MAX_JS_SIZE ]; then
+            echo "❌ JavaScript bundle size exceeds limit!"
+            exit 1
+          fi
+          
+          # Check CSS bundle sizes
+          CSS_SIZE=$(find dist -name "*.css" -type f -exec ls -l {} + | awk '{total+=$5} END{print int(total/1024)}')
+          echo "Total CSS size: ${CSS_SIZE}KB (limit: ${MAX_CSS_SIZE}KB)"
+          
+          if [ $CSS_SIZE -gt $MAX_CSS_SIZE ]; then
+            echo "❌ CSS bundle size exceeds limit!"
+            exit 1
+          fi
+          
+  lighthouse-ci:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          runs: 3
+          configPath: ./lighthouserc.json
+          
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality-checks
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run tests with coverage
+        run: |
+          # Check if test script exists
+          if pnpm run test --help > /dev/null 2>&1; then
+            pnpm run test -- --coverage --watchAll=false
+          else
+            echo "No test script found. Skipping tests."
+            echo "test_skipped=true" >> $GITHUB_OUTPUT
+          fi
+        id: test
+        
+      - name: Upload coverage reports
+        if: steps.test.outputs.test_skipped != 'true'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          
+  pr-labels:
+    name: PR Labels Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Check PR has labels
+        uses: mheap/github-action-required-labels@v5
+        with:
+          mode: minimum
+          count: 1
+          labels: "bug, enhancement, documentation, dependencies, breaking-change"
