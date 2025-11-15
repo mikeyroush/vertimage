@@ -5,14 +5,19 @@
 import { useRef } from 'react';
 import { useImageStore } from '@/application/store/imageStore';
 import { useConfigStore } from '@/application/store/configStore';
+import { useDroneStore } from '@/application/store/droneStore';
 import { useCanvasDimensions } from '@/application/hooks/useCanvasDimensions';
 import { ImageCanvas } from '../canvas/ImageCanvas';
 import { VertexOverlay } from '../canvas/VertexOverlay';
+import { BrightnessMaskOverlay } from '../canvas/BrightnessMaskOverlay';
 
 export function CanvasArea() {
   const containerRef = useRef<HTMLDivElement>(null);
   const currentImage = useImageStore((state) => state.currentImage);
   const showImagePreview = useConfigStore((state) => state.showImagePreview);
+  const showBrightnessMask = useConfigStore((state) => state.showBrightnessMask);
+  const avoidDarkAreas = useConfigStore((state) => state.avoidDarkAreas);
+  const brightnessMask = useDroneStore((state) => state.brightnessMask);
   
   // Use unified canvas dimensions hook
   const canvasDimensions = useCanvasDimensions(containerRef, {
@@ -55,6 +60,20 @@ export function CanvasArea() {
                   className={`transition-opacity duration-200 ${
                     canvasDimensions.isCalculating ? 'opacity-75' : 'opacity-100'
                   }`}
+                />
+              )}
+              
+              {/* Brightness mask overlay - shown when enabled and available */}
+              {showBrightnessMask && avoidDarkAreas && brightnessMask && currentImage && (
+                <BrightnessMaskOverlay
+                  mask={brightnessMask}
+                  canvasWidth={canvasDimensions.width}
+                  canvasHeight={canvasDimensions.height}
+                  imageWidth={currentImage.width}
+                  imageHeight={currentImage.height}
+                  scale={canvasDimensions.scale}
+                  offsetX={(canvasDimensions.width - currentImage.width * canvasDimensions.scale) / 2}
+                  offsetY={(canvasDimensions.height - currentImage.height * canvasDimensions.scale) / 2}
                 />
               )}
               

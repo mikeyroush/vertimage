@@ -21,7 +21,7 @@ export function useVertexCalculation() {
   
   const currentImage = useImageStore((state) => state.currentImage);
   const config = useConfigStore();
-  const { setVertices, setDrones, setCalculating } = useDroneStore();
+  const { setVertices, setDrones, setBrightnessMask, setCalculating } = useDroneStore();
   
   const calculateVertices = useCallback(async () => {
     if (!currentImage?.imageData) return;
@@ -46,7 +46,7 @@ export function useVertexCalculation() {
       
       if (config.avoidDarkAreas && currentImage.imageData) {
         // Use brightness-aware distribution
-        vertexResult = distributeBrightnessAwareVertices({
+        const brightnessResult = distributeBrightnessAwareVertices({
           width: currentImage.width,
           height: currentImage.height,
           count: config.vertexCount,
@@ -55,6 +55,9 @@ export function useVertexCalculation() {
           brightnessThreshold: config.brightnessThreshold,
           avoidanceRadius: config.samplingRadius,
         });
+        
+        vertexResult = brightnessResult;
+        setBrightnessMask(brightnessResult.brightnessMask);
       } else {
         // Use standard distribution
         vertexResult = distributeVertices({
@@ -64,6 +67,9 @@ export function useVertexCalculation() {
           margin: config.vertexMargin,
           distribution: config.vertexDistribution,
         });
+        
+        // Clear brightness mask when not using brightness-aware distribution
+        setBrightnessMask(null);
       }
       
       // Check if calculation was aborted before proceeding
@@ -119,6 +125,7 @@ export function useVertexCalculation() {
     config.avoidDarkAreas,
     setVertices,
     setDrones,
+    setBrightnessMask,
     setCalculating,
   ]);
   

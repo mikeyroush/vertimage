@@ -6,7 +6,7 @@
  */
 
 import { VertexDistributionParams, VertexCalculationResult } from '../types';
-import { generateBrightnessMask } from './brightnessMask';
+import { generateBrightnessMask, BrightnessMask } from './brightnessMask';
 import { distributeMaskedVertices } from './maskedDistribution';
 
 export interface BrightnessAwareParams extends VertexDistributionParams {
@@ -17,12 +17,16 @@ export interface BrightnessAwareParams extends VertexDistributionParams {
   algorithm?: 'grid' | 'hexagonal';
 }
 
+export interface BrightnessAwareResult extends VertexCalculationResult {
+  brightnessMask: BrightnessMask;
+}
+
 /**
  * Distributes vertices while avoiding dark areas using brightness mask approach
  */
 export function distributeBrightnessAwareVertices(
   params: BrightnessAwareParams
-): VertexCalculationResult {
+): BrightnessAwareResult {
   const startTime = performance.now();
   const { 
     width, 
@@ -66,6 +70,7 @@ export function distributeBrightnessAwareVertices(
     vertices: result.vertices,
     calculationTime,
     actualCount: result.actualCount,
+    brightnessMask: mask,
   };
 }
 

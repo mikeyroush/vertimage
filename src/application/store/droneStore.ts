@@ -5,16 +5,19 @@
 import { create } from 'zustand';
 import { DroneData, Vertex } from '@/domain/types';
 import { calculateDroneStatistics } from '@/domain/algorithms';
+import { BrightnessMask } from '@/domain/algorithms/brightnessMask';
 
 interface DroneState {
   // State
   vertices: Vertex[];
   drones: DroneData[];
+  brightnessMask: BrightnessMask | null;
   isCalculating: boolean;
   
   // Actions
   setVertices: (vertices: Vertex[]) => void;
   setDrones: (drones: DroneData[]) => void;
+  setBrightnessMask: (mask: BrightnessMask | null) => void;
   setCalculating: (calculating: boolean) => void;
   clearDrones: () => void;
   
@@ -27,6 +30,7 @@ export const useDroneStore = create<DroneState>((set, get) => ({
   // Initial state
   vertices: [],
   drones: [],
+  brightnessMask: null,
   isCalculating: false,
   
   // Actions
@@ -34,11 +38,14 @@ export const useDroneStore = create<DroneState>((set, get) => ({
   
   setDrones: (drones) => set({ drones }),
   
+  setBrightnessMask: (mask) => set({ brightnessMask: mask }),
+  
   setCalculating: (calculating) => set({ isCalculating: calculating }),
   
   clearDrones: () => set({ 
     vertices: [], 
     drones: [], 
+    brightnessMask: null,
     isCalculating: false 
   }),
   

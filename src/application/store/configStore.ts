@@ -19,6 +19,7 @@ interface ConfigState {
   // Display configuration
   showImagePreview: boolean;
   avoidDarkAreas: boolean;
+  showBrightnessMask: boolean;
   
   // Actions
   setVertexCount: (count: number) => void;
@@ -28,6 +29,7 @@ interface ConfigState {
   setSamplingRadius: (radius: number) => void;
   setShowImagePreview: (show: boolean) => void;
   setAvoidDarkAreas: (avoid: boolean) => void;
+  setShowBrightnessMask: (show: boolean) => void;
   resetConfig: () => void;
 }
 
@@ -39,6 +41,7 @@ const initialState = {
   samplingRadius: DEFAULT_DRONE_CONFIG.samplingRadius,
   showImagePreview: true,
   avoidDarkAreas: false,
+  showBrightnessMask: false,
 };
 
 export const useConfigStore = create<ConfigState>((set) => ({
@@ -52,6 +55,7 @@ export const useConfigStore = create<ConfigState>((set) => ({
   setSamplingRadius: (radius) => set({ samplingRadius: radius }),
   setShowImagePreview: (show) => set({ showImagePreview: show }),
   setAvoidDarkAreas: (avoid) => set({ avoidDarkAreas: avoid }),
+  setShowBrightnessMask: (show) => set({ showBrightnessMask: show }),
   
   resetConfig: () => set(initialState),
 }));
