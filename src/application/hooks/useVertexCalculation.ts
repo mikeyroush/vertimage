@@ -54,6 +54,7 @@ export function useVertexCalculation() {
           imageData: currentImage.imageData,
           brightnessThreshold: config.brightnessThreshold,
           avoidanceRadius: config.samplingRadius,
+          maskResolution: config.maskGridDensity,
         });
         
         vertexResult = brightnessResult;
@@ -123,6 +124,7 @@ export function useVertexCalculation() {
     config.samplingRadius,
     config.brightnessThreshold,
     config.avoidDarkAreas,
+    config.maskGridDensity,
     setVertices,
     setDrones,
     setBrightnessMask,
@@ -149,7 +151,7 @@ export function useVertexCalculation() {
         }
       };
     }
-  }, [calculateVertices, currentImage, config.vertexCount, config.avoidDarkAreas]);
+  }, [calculateVertices, currentImage, config.vertexCount, config.avoidDarkAreas, config.maskGridDensity]);
   
   // Cleanup on unmount
   useEffect(() => {
