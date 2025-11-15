@@ -46,7 +46,7 @@ export function DronePreview({
           strokeWidth={strokeWidth * 0.5}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: showDetails ? 'pointer' : 'default' }}
         />
         
         {/* Excluded drone tooltip */}
@@ -106,7 +106,7 @@ export function DronePreview({
         opacity={0.85 + brightness * 0.15} // Brighter drones are more opaque
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: showDetails ? 'pointer' : 'default' }}
       />
       
       {/* Inner highlight for brightness indicator */}
