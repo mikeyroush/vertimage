@@ -5,6 +5,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useImageStore } from '../store/imageStore';
+import { useConfigStore } from '../store/configStore';
 import { calculateCanvasDimensions } from '@/infrastructure/canvas/canvasUtils';
 
 interface CanvasDimensions {
@@ -36,6 +37,7 @@ export function useCanvasDimensions(
   const resizeObserverRef = useRef<ResizeObserver>();
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const currentImage = useImageStore((state) => state.currentImage);
+  const zoomLevel = useConfigStore((state) => state.zoomLevel);
   
   const updateDimensions = useCallback(() => {
     if (!containerRef.current) return;
@@ -64,10 +66,11 @@ export function useCanvasDimensions(
           maxHeight
         );
         
+        // Apply zoom multiplier to final dimensions
         setDimensions({
-          width: dims.width,
-          height: dims.height,
-          scale: dims.scale,
+          width: dims.width * zoomLevel,
+          height: dims.height * zoomLevel,
+          scale: dims.scale * zoomLevel,
           isCalculating: false,
         });
       } else {
@@ -79,7 +82,7 @@ export function useCanvasDimensions(
         });
       }
     }, 150); // 150ms debounce
-  }, [containerRef, currentImage, padding, minWidth, minHeight]);
+  }, [containerRef, currentImage, zoomLevel, padding, minWidth, minHeight]);
   
   // Set up ResizeObserver for container dimension changes
   useEffect(() => {
