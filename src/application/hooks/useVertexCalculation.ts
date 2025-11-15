@@ -8,8 +8,7 @@ import { useConfigStore } from '../store/configStore';
 import { useDroneStore } from '../store/droneStore';
 import { 
   distributeVertices, 
-  distributeBrightnessAwareVertices,
-  filterDronesByBrightness 
+  distributeBrightnessAwareVertices
 } from '@/domain/algorithms';
 import { 
   batchSampleColors 
@@ -92,16 +91,14 @@ export function useVertexCalculation() {
         },
         color: colors[index],
         brightness: brightnesses[index],
-        // When avoiding dark areas, all drones should be included since they're placed strategically
-        included: config.avoidDarkAreas ? true : (brightnesses[index] >= config.brightnessThreshold),
+        // Always apply brightness threshold - the brightness-aware algorithm should only place bright vertices
+        included: brightnesses[index] >= config.brightnessThreshold,
       }));
       
       // Final check before setting results
       if (abortController.signal.aborted) return;
       
-      // Apply brightness filtering
-      const filteredDrones = filterDronesByBrightness(droneData, config.brightnessThreshold);
-      setDrones(filteredDrones);
+      setDrones(droneData);
       
     } catch (error) {
       if (!abortController.signal.aborted) {
