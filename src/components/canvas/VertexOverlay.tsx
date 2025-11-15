@@ -72,6 +72,8 @@ export function VertexOverlay({ width, height, scale }: VertexOverlayProps) {
               y={y}
               scale={scale}
               showDetails={showDetails}
+              canvasWidth={width}
+              canvasHeight={height}
             />
           );
         })}

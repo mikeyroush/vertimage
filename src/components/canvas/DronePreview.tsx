@@ -4,6 +4,11 @@
 
 import { useState } from 'react';
 import { DroneData } from '@/domain/types';
+import { 
+  calculateTooltipDimensions, 
+  calculateTooltipPosition, 
+  createDroneTooltipContent 
+} from './utils/tooltipUtils';
 
 interface DronePreviewProps {
   drone: DroneData;
@@ -11,9 +16,19 @@ interface DronePreviewProps {
   y: number;
   scale: number;
   showDetails?: boolean;
+  canvasWidth?: number;
+  canvasHeight?: number;
 }
 
-export function DronePreview({ drone, x, y, scale, showDetails = false }: DronePreviewProps) {
+export function DronePreview({ 
+  drone, 
+  x, 
+  y, 
+  scale, 
+  showDetails = false,
+  canvasWidth = 800,
+  canvasHeight = 600 
+}: DronePreviewProps) {
   const [isHovered, setIsHovered] = useState(false);
   const radius = Math.max(3, 6 * scale);
   const strokeWidth = Math.max(0.5, 1 * scale);
@@ -35,27 +50,38 @@ export function DronePreview({ drone, x, y, scale, showDetails = false }: DroneP
         />
         
         {/* Excluded drone tooltip */}
-        {isHovered && showDetails && (
-          <g className="pointer-events-none">
-            <rect
-              x={x + radius + 5}
-              y={y - 25}
-              width={120}
-              height={30}
-              fill="rgba(0, 0, 0, 0.9)"
-              rx={4}
-            />
-            <text
-              x={x + radius + 10}
-              y={y - 10}
-              fill="white"
-              fontSize="10"
-              fontFamily="monospace"
-            >
-              Excluded (too dark)
-            </text>
-          </g>
-        )}
+        {isHovered && showDetails && (() => {
+          const tooltipContent = createDroneTooltipContent(drone, true);
+          const dimensions = calculateTooltipDimensions(tooltipContent);
+          const position = calculateTooltipPosition(
+            x, y, radius, dimensions.width, dimensions.height, canvasWidth, canvasHeight
+          );
+          
+          return (
+            <g className="pointer-events-none">
+              <rect
+                x={position.x}
+                y={position.y}
+                width={dimensions.width}
+                height={dimensions.height}
+                fill="rgba(0, 0, 0, 0.9)"
+                rx={4}
+              />
+              {tooltipContent.lines.map((line, index) => (
+                <text
+                  key={index}
+                  x={position.x + dimensions.padding.x}
+                  y={position.y + dimensions.padding.y + (index + 1) * 14}
+                  fill="white"
+                  fontSize="10"
+                  fontFamily="monospace"
+                >
+                  {line}
+                </text>
+              ))}
+            </g>
+          );
+        })()}
       </g>
     );
   }
@@ -108,54 +134,38 @@ export function DronePreview({ drone, x, y, scale, showDetails = false }: DroneP
       )}
       
       {/* Details tooltip on hover (if enabled) */}
-      {isHovered && showDetails && (
-        <g className="pointer-events-none">
-          <rect
-            x={x + radius + 5}
-            y={y - 35}
-            width={140}
-            height={55}
-            fill="rgba(0, 0, 0, 0.9)"
-            rx={4}
-          />
-          <text
-            x={x + radius + 10}
-            y={y - 25}
-            fill="white"
-            fontSize="10"
-            fontFamily="monospace"
-          >
-            Drone ID: {drone.id}
-          </text>
-          <text
-            x={x + radius + 10}
-            y={y - 15}
-            fill="white"
-            fontSize="10"
-            fontFamily="monospace"
-          >
-            Position: ({Math.round(drone.position.x)}, {Math.round(drone.position.y)})
-          </text>
-          <text
-            x={x + radius + 10}
-            y={y - 5}
-            fill="white"
-            fontSize="10"
-            fontFamily="monospace"
-          >
-            RGB: ({r}, {g}, {b})
-          </text>
-          <text
-            x={x + radius + 10}
-            y={y + 5}
-            fill="white"
-            fontSize="10"
-            fontFamily="monospace"
-          >
-            Brightness: {Math.round(brightness * 100)}%
-          </text>
-        </g>
-      )}
+      {isHovered && showDetails && (() => {
+        const tooltipContent = createDroneTooltipContent(drone, false);
+        const dimensions = calculateTooltipDimensions(tooltipContent);
+        const position = calculateTooltipPosition(
+          x, y, radius, dimensions.width, dimensions.height, canvasWidth, canvasHeight
+        );
+        
+        return (
+          <g className="pointer-events-none">
+            <rect
+              x={position.x}
+              y={position.y}
+              width={dimensions.width}
+              height={dimensions.height}
+              fill="rgba(0, 0, 0, 0.9)"
+              rx={4}
+            />
+            {tooltipContent.lines.map((line, index) => (
+              <text
+                key={index}
+                x={position.x + dimensions.padding.x}
+                y={position.y + dimensions.padding.y + (index + 1) * 14}
+                fill="white"
+                fontSize="10"
+                fontFamily="monospace"
+              >
+                {line}
+              </text>
+            ))}
+          </g>
+        );
+      })()}
     </g>
   );
 }
