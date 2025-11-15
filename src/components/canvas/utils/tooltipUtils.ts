@@ -118,7 +118,12 @@ export function calculateTooltipPosition(
 /**
  * Create tooltip content for drone data
  */
-export function createDroneTooltipContent(drone: any, isExcluded = false): TooltipContent {
+export function createDroneTooltipContent(drone: {
+  id: string;
+  position: { x: number; y: number };
+  color?: { r: number; g: number; b: number };
+  brightness?: number;
+}, isExcluded = false): TooltipContent {
   if (isExcluded) {
     return {
       lines: [
@@ -129,13 +134,13 @@ export function createDroneTooltipContent(drone: any, isExcluded = false): Toolt
     };
   }
 
-  const { r, g, b } = drone.color;
+  const { r, g, b } = drone.color || { r: 0, g: 0, b: 0 };
   return {
     lines: [
       `Drone ID: ${drone.id}`,
       `Position: (${Math.round(drone.position.x)}, ${Math.round(drone.position.y)})`,
       `RGB: (${r}, ${g}, ${b})`,
-      `Brightness: ${Math.round(drone.brightness * 100)}%`,
+      `Brightness: ${Math.round((drone.brightness || 0) * 100)}%`,
     ],
   };
 }
