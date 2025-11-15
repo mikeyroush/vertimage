@@ -8,6 +8,7 @@ import { useConfigStore } from '../store/configStore';
 import { useDroneStore } from '../store/droneStore';
 import { 
   distributeVertices, 
+  distributeBrightnessAwareVertices,
   filterDronesByBrightness 
 } from '@/domain/algorithms';
 import { 
@@ -42,13 +43,29 @@ export function useVertexCalculation() {
       if (abortController.signal.aborted) return;
       
       // Calculate vertex positions
-      const vertexResult = distributeVertices({
-        width: currentImage.width,
-        height: currentImage.height,
-        count: config.vertexCount,
-        margin: config.vertexMargin,
-        distribution: config.vertexDistribution,
-      });
+      let vertexResult;
+      
+      if (config.avoidDarkAreas && currentImage.imageData) {
+        // Use brightness-aware distribution
+        vertexResult = distributeBrightnessAwareVertices({
+          width: currentImage.width,
+          height: currentImage.height,
+          count: config.vertexCount,
+          margin: config.vertexMargin,
+          imageData: currentImage.imageData,
+          brightnessThreshold: config.brightnessThreshold,
+          avoidanceRadius: config.samplingRadius,
+        });
+      } else {
+        // Use standard distribution
+        vertexResult = distributeVertices({
+          width: currentImage.width,
+          height: currentImage.height,
+          count: config.vertexCount,
+          margin: config.vertexMargin,
+          distribution: config.vertexDistribution,
+        });
+      }
       
       // Check if calculation was aborted before proceeding
       if (abortController.signal.aborted) return;
@@ -101,6 +118,7 @@ export function useVertexCalculation() {
     config.vertexDistribution,
     config.samplingRadius,
     config.brightnessThreshold,
+    config.avoidDarkAreas,
     setVertices,
     setDrones,
     setCalculating,
@@ -126,7 +144,7 @@ export function useVertexCalculation() {
         }
       };
     }
-  }, [calculateVertices, currentImage, config.vertexCount]);
+  }, [calculateVertices, currentImage, config.vertexCount, config.avoidDarkAreas]);
   
   // Cleanup on unmount
   useEffect(() => {
