@@ -50,7 +50,7 @@ updates:
     # Add labels to PRs
     labels:
       - "dependencies"
-      - "automated"
+      - "dependabot"
     # Add reviewers if you have a team
     # reviewers:
     #   - "username"
@@ -71,4 +71,4 @@ updates:
       include: "scope"
     labels:
       - "github-actions"
-      - "automated"
+      - "dependabot"

@@ -277,7 +277,7 @@ jobs:
               repo: context.repo.repo,
               title: `Maintenance Summary - ${new Date().toISOString().split('T')[0]}`,
               body: summary,
-              labels: ['maintenance', 'automated']
+              labels: ['maintenance', 'dependabot']
             });
             
             console.log(`Created maintenance summary: ${issue.data.html_url}`);
