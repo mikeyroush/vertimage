@@ -130,7 +130,7 @@ jobs:
         run: pnpm run build
         
       - name: Analyze bundle size
-        uses: github/super-linter/analyze-bundle-size@v1
+        uses: github/super-linter/analyze-bundle-size@v7
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           build_directory: dist
