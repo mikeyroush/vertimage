@@ -46,8 +46,8 @@ jobs:
           
       - name: Build application
         run: |
-          # Set base path for GitHub Pages
-          export BASE_URL="/${{ github.event.repository.name }}/"
+          # For custom domain, we use root path
+          export BASE_URL="/"
           pnpm run build
           
       - name: Generate build info
@@ -111,10 +111,11 @@ jobs:
         
       - name: Check deployment health
         run: |
-          DEPLOY_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          # Check custom domain deployment
+          DEPLOY_URL="https://mikeyroush.com/"
           
-          # Check if site is accessible
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_URL")
+          # Check if site is accessible (allow redirects)
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$DEPLOY_URL")
           
           if [ "$HTTP_STATUS" -eq 200 ]; then
             echo "✅ Deployment successful! Site is accessible at $DEPLOY_URL"
@@ -127,7 +128,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v10
         with:
           urls: |
-            https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+            https://mikeyroush.com/
           uploadArtifacts: false
           temporaryPublicStorage: true
           
@@ -136,7 +137,7 @@ jobs:
         if: github.event_name == 'push' && github.event.head_commit
         with:
           script: |
-            const deployUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/`;
+            const deployUrl = `https://mikeyroush.com/`;
             
             github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
