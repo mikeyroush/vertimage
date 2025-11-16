@@ -46,8 +46,8 @@ jobs:
           
       - name: Build application
         run: |
-          # For custom domain, we use root path
-          export BASE_URL="/"
+          # Set base path for GitHub Pages subdirectory
+          export BASE_URL="/vertimage/"
           pnpm run build
           
       - name: Generate build info
@@ -111,8 +111,8 @@ jobs:
         
       - name: Check deployment health
         run: |
-          # Check custom domain deployment
-          DEPLOY_URL="https://mikeyroush.com/"
+          # Check deployment at subdirectory
+          DEPLOY_URL="https://mikeyroush.com/vertimage/"
           
           # Check if site is accessible (allow redirects)
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$DEPLOY_URL")
@@ -128,7 +128,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v10
         with:
           urls: |
-            https://mikeyroush.com/
+            https://mikeyroush.com/vertimage/
           uploadArtifacts: false
           temporaryPublicStorage: true
           
@@ -137,7 +137,7 @@ jobs:
         if: github.event_name == 'push' && github.event.head_commit
         with:
           script: |
-            const deployUrl = `https://mikeyroush.com/`;
+            const deployUrl = `https://mikeyroush.com/vertimage/`;
             
             github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
