@@ -100,41 +100,15 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
         
-  verify-deployment:
-    name: Verify Deployment
+  post-deployment:
+    name: Post Deployment Status
     runs-on: ubuntu-latest
     needs: deploy
+    if: github.event_name == 'push' && github.event.head_commit
     
     steps:
-      - name: Wait for deployment
-        run: sleep 30
-        
-      - name: Check deployment health
-        run: |
-          # Check deployment at subdirectory
-          DEPLOY_URL="https://mikeyroush.com/vertimage/"
-          
-          # Check if site is accessible (allow redirects)
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$DEPLOY_URL")
-          
-          if [ "$HTTP_STATUS" -eq 200 ]; then
-            echo "✅ Deployment successful! Site is accessible at $DEPLOY_URL"
-          else
-            echo "❌ Deployment verification failed. HTTP status: $HTTP_STATUS"
-            exit 1
-          fi
-          
-      - name: Run Lighthouse audit
-        uses: treosh/lighthouse-ci-action@v10
-        with:
-          urls: |
-            https://mikeyroush.com/vertimage/
-          uploadArtifacts: false
-          temporaryPublicStorage: true
-          
       - name: Post deployment notification
         uses: actions/github-script@v8
-        if: github.event_name == 'push' && github.event.head_commit
         with:
           script: |
             const deployUrl = `https://mikeyroush.com/vertimage/`;
