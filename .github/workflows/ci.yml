@@ -128,12 +128,6 @@ jobs:
         
       - name: Build for production
         run: pnpm run build
-        
-      - name: Analyze bundle size
-        uses: github/super-linter/analyze-bundle-size@v7
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          build_directory: dist
           
       - name: Check bundle size limits
         run: |
@@ -189,7 +183,7 @@ jobs:
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v10
         with:
-          uploadArtifacts: true
+          uploadArtifacts: false
           temporaryPublicStorage: true
           runs: 3
           configPath: ./lighthouserc.json
