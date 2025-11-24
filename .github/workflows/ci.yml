@@ -190,7 +190,7 @@ jobs:
         
       - name: Upload coverage reports
         if: steps.test.outputs.test_skipped != 'true'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           file: ./coverage/coverage-final.json
           flags: unittests
